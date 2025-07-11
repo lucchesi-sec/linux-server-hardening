@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: pacman
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') pacman $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/pacman.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/pacman.sh" "$@"
+else
+    # Default mock behavior
+    mock_pacman_default "$@"
+fi

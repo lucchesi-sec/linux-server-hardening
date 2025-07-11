@@ -1,0 +1,94 @@
+# Linux Server Hardening Project - .gitignore
+
+# Logs and temporary files
+logs/
+*.log
+audit_*.log
+hardening_*.log
+test_report_*.txt
+
+# Backup files created during hardening
+*.bak
+*.bak_*
+*.backup
+*~
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.env
+.venv
+env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated configuration files (sensitive)
+configs/local/
+configs/production/
+configs/*.local.yaml
+configs/secrets/
+
+# SSH keys and certificates (security)
+*.pem
+*.key
+id_rsa*
+*.crt
+*.p12
+
+# API and database files
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Test artifacts
+test_results/
+coverage.xml
+.tox/
+.nox/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+.installed.cfg
+
+# Documentation build
+docs/_build/
+site/
+
+# Runtime files
+*.pid
+*.sock
+*.tmp
+
+# ELK Stack data
+elasticsearch/data/
+logstash/data/
+kibana/data/
+
+# Fleet management artifacts
+fleet/data/
+fleet/logs/
+
+# Compliance report outputs (may contain sensitive data)
+compliance/reports/
+compliance/output/
+
+# Local development overrides
+docker-compose.override.yml
+.env.local

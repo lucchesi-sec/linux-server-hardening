@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: fail2ban-client
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') fail2ban-client $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/fail2ban-client.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/fail2ban-client.sh" "$@"
+else
+    # Default mock behavior
+    mock_fail2ban-client_default "$@"
+fi

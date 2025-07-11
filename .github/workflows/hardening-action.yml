@@ -1,0 +1,435 @@
+# GitHub Action for Linux Server Hardening
+# Automated security hardening and compliance validation in CI/CD pipelines
+
+name: 'Linux Server Hardening'
+description: 'Automated security hardening and compliance validation for Linux systems'
+author: 'Linux Server Hardening Platform'
+
+inputs:
+  profile:
+    description: 'Hardening profile to apply (corporate_baseline, financial_services, healthcare, high_security)'
+    required: false
+    default: 'corporate_baseline'
+  
+  modules:
+    description: 'Specific modules to execute (comma-separated)'
+    required: false
+    default: 'ssh,ufw,sysctl,auditd'
+  
+  compliance_frameworks:
+    description: 'Compliance frameworks to validate (comma-separated: cis,nist,pci,iso27001)'
+    required: false
+    default: 'cis'
+  
+  dry_run:
+    description: 'Run in preview mode without making changes'
+    required: false
+    default: 'false'
+  
+  auto_remediate:
+    description: 'Automatically remediate compliance failures'
+    required: false
+    default: 'false'
+  
+  fail_on_compliance:
+    description: 'Fail the workflow if compliance check fails'
+    required: false
+    default: 'true'
+  
+  report_format:
+    description: 'Report format (json, html, sarif)'
+    required: false
+    default: 'json'
+  
+  upload_artifacts:
+    description: 'Upload compliance reports as artifacts'
+    required: false
+    default: 'true'
+  
+  notification_webhook:
+    description: 'Webhook URL for notifications'
+    required: false
+  
+  api_token:
+    description: 'API token for fleet management integration'
+    required: false
+
+outputs:
+  compliance_score:
+    description: 'Overall compliance score (0-100)'
+  
+  hardening_status:
+    description: 'Hardening execution status (success, failed, partial)'
+  
+  report_path:
+    description: 'Path to generated compliance report'
+  
+  failed_controls:
+    description: 'Number of failed compliance controls'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Environment
+      shell: bash
+      run: |
+        echo "::group::Setting up Linux Server Hardening Platform"
+        
+        # Install dependencies
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip jq curl
+        
+        # Set environment variables
+        echo "HARDENING_PROFILE=${{ inputs.profile }}" >> $GITHUB_ENV
+        echo "HARDENING_MODULES=${{ inputs.modules }}" >> $GITHUB_ENV
+        echo "COMPLIANCE_FRAMEWORKS=${{ inputs.compliance_frameworks }}" >> $GITHUB_ENV
+        echo "DRY_RUN=${{ inputs.dry_run }}" >> $GITHUB_ENV
+        echo "AUTO_REMEDIATE=${{ inputs.auto_remediate }}" >> $GITHUB_ENV
+        echo "REPORT_FORMAT=${{ inputs.report_format }}" >> $GITHUB_ENV
+        
+        echo "::endgroup::"
+
+    - name: Download Hardening Platform
+      shell: bash
+      run: |
+        echo "::group::Downloading Linux Server Hardening Platform"
+        
+        # Clone or download the hardening platform
+        if [ ! -d "/tmp/linux-server-hardening" ]; then
+          git clone https://github.com/lucchesi-sec/cybersec-projects.git /tmp/cybersec-projects
+          cp -r /tmp/cybersec-projects/linux-server-hardening /tmp/linux-server-hardening
+        fi
+        
+        # Make scripts executable
+        chmod +x /tmp/linux-server-hardening/harden.sh
+        chmod +x /tmp/linux-server-hardening/src/compliance/engine.sh
+        
+        echo "::endgroup::"
+
+    - name: Validate System Requirements
+      shell: bash
+      run: |
+        echo "::group::Validating System Requirements"
+        
+        # Check OS compatibility
+        if [ -f /etc/os-release ]; then
+          . /etc/os-release
+          echo "Detected OS: $NAME $VERSION"
+          
+          case "$ID" in
+            ubuntu|debian|rhel|centos|fedora)
+              echo "✓ Supported operating system"
+              ;;
+            *)
+              echo "⚠️  OS may not be fully supported: $ID"
+              ;;
+          esac
+        fi
+        
+        # Check permissions
+        if [ "$EUID" -eq 0 ]; then
+          echo "✓ Running with root privileges"
+        else
+          echo "ℹ️  Running without root (some checks may be limited)"
+        fi
+        
+        # Check available disk space
+        AVAILABLE_SPACE=$(df / | awk 'NR==2 {print $4}')
+        if [ "$AVAILABLE_SPACE" -gt 1048576 ]; then  # 1GB in KB
+          echo "✓ Sufficient disk space available"
+        else
+          echo "⚠️  Low disk space may affect operations"
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Run System Hardening
+      shell: bash
+      run: |
+        echo "::group::Executing System Hardening"
+        
+        cd /tmp/linux-server-hardening
+        
+        # Build hardening command
+        HARDENING_CMD="sudo ./harden.sh"
+        
+        # Add profile if specified
+        if [ -n "$HARDENING_PROFILE" ] && [ "$HARDENING_PROFILE" != "default" ]; then
+          HARDENING_CMD="$HARDENING_CMD --profile $HARDENING_PROFILE"
+        fi
+        
+        # Add specific modules
+        if [ -n "$HARDENING_MODULES" ]; then
+          IFS=',' read -ra MODULES <<< "$HARDENING_MODULES"
+          for module in "${MODULES[@]}"; do
+            HARDENING_CMD="$HARDENING_CMD -m $module"
+          done
+        else
+          HARDENING_CMD="$HARDENING_CMD -a"  # Apply all modules
+        fi
+        
+        # Add dry run flag
+        if [ "$DRY_RUN" = "true" ]; then
+          HARDENING_CMD="$HARDENING_CMD --dry-run"
+        fi
+        
+        # Add verbose output for CI
+        HARDENING_CMD="$HARDENING_CMD --verbose"
+        
+        echo "Executing: $HARDENING_CMD"
+        
+        # Execute hardening with error handling
+        if $HARDENING_CMD; then
+          echo "HARDENING_STATUS=success" >> $GITHUB_ENV
+          echo "✓ Hardening completed successfully"
+        else
+          echo "HARDENING_STATUS=failed" >> $GITHUB_ENV
+          echo "✗ Hardening failed"
+          if [ "${{ inputs.fail_on_compliance }}" = "true" ]; then
+            exit 1
+          fi
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Run Compliance Scan
+      shell: bash
+      run: |
+        echo "::group::Running Compliance Validation"
+        
+        cd /tmp/linux-server-hardening
+        
+        # Initialize compliance engine
+        sudo ./src/compliance/engine.sh init
+        
+        COMPLIANCE_SCORE=0
+        TOTAL_FRAMEWORKS=0
+        FAILED_CONTROLS=0
+        
+        # Run scans for each framework
+        IFS=',' read -ra FRAMEWORKS <<< "$COMPLIANCE_FRAMEWORKS"
+        for framework in "${FRAMEWORKS[@]}"; do
+          echo "Running compliance scan: $framework"
+          
+          REPORT_FILE="/tmp/compliance_${framework}_$(date +%Y%m%d_%H%M%S).${REPORT_FORMAT}"
+          
+          if sudo ./src/compliance/engine.sh scan "$framework" default "$REPORT_FORMAT" > "$REPORT_FILE"; then
+            echo "✓ Compliance scan completed: $framework"
+            
+            # Parse results (simplified)
+            if [ "$REPORT_FORMAT" = "json" ] && [ -f "$REPORT_FILE" ]; then
+              # Extract basic metrics
+              CONTROLS_PASSED=$(jq -r '.results | map(select(.status == "PASS")) | length' "$REPORT_FILE" 2>/dev/null || echo "0")
+              CONTROLS_FAILED=$(jq -r '.results | map(select(.status == "FAIL")) | length' "$REPORT_FILE" 2>/dev/null || echo "0")
+              TOTAL_CONTROLS=$((CONTROLS_PASSED + CONTROLS_FAILED))
+              
+              if [ "$TOTAL_CONTROLS" -gt 0 ]; then
+                FRAMEWORK_SCORE=$((CONTROLS_PASSED * 100 / TOTAL_CONTROLS))
+                echo "Framework $framework score: $FRAMEWORK_SCORE%"
+                COMPLIANCE_SCORE=$((COMPLIANCE_SCORE + FRAMEWORK_SCORE))
+                FAILED_CONTROLS=$((FAILED_CONTROLS + CONTROLS_FAILED))
+              fi
+            fi
+            
+            TOTAL_FRAMEWORKS=$((TOTAL_FRAMEWORKS + 1))
+          else
+            echo "✗ Compliance scan failed: $framework"
+            FAILED_CONTROLS=$((FAILED_CONTROLS + 10))  # Penalty for failed scan
+          fi
+        done
+        
+        # Calculate average compliance score
+        if [ "$TOTAL_FRAMEWORKS" -gt 0 ]; then
+          COMPLIANCE_SCORE=$((COMPLIANCE_SCORE / TOTAL_FRAMEWORKS))
+        fi
+        
+        echo "COMPLIANCE_SCORE=$COMPLIANCE_SCORE" >> $GITHUB_ENV
+        echo "FAILED_CONTROLS=$FAILED_CONTROLS" >> $GITHUB_ENV
+        
+        echo "Overall compliance score: $COMPLIANCE_SCORE%"
+        echo "Failed controls: $FAILED_CONTROLS"
+        
+        # Check compliance threshold
+        if [ "$COMPLIANCE_SCORE" -lt 80 ] && [ "${{ inputs.fail_on_compliance }}" = "true" ]; then
+          echo "✗ Compliance score below threshold (80%)"
+          exit 1
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Auto-Remediation
+      if: inputs.auto_remediate == 'true' && env.FAILED_CONTROLS > 0
+      shell: bash
+      run: |
+        echo "::group::Auto-Remediation"
+        
+        cd /tmp/linux-server-hardening
+        
+        echo "Attempting auto-remediation for failed controls..."
+        
+        # Re-run hardening with remediation focus
+        if sudo ./harden.sh --remediate --auto-approve; then
+          echo "✓ Auto-remediation completed"
+          
+          # Re-run compliance scan to verify improvements
+          echo "Re-running compliance validation..."
+          sudo ./src/compliance/engine.sh scan cis_ubuntu_22_04 default json > /tmp/remediation_report.json
+          
+          # Update compliance score
+          CONTROLS_PASSED=$(jq -r '.results | map(select(.status == "PASS")) | length' /tmp/remediation_report.json 2>/dev/null || echo "0")
+          CONTROLS_FAILED=$(jq -r '.results | map(select(.status == "FAIL")) | length' /tmp/remediation_report.json 2>/dev/null || echo "0")
+          TOTAL_CONTROLS=$((CONTROLS_PASSED + CONTROLS_FAILED))
+          
+          if [ "$TOTAL_CONTROLS" -gt 0 ]; then
+            NEW_SCORE=$((CONTROLS_PASSED * 100 / TOTAL_CONTROLS))
+            echo "COMPLIANCE_SCORE=$NEW_SCORE" >> $GITHUB_ENV
+            echo "Post-remediation compliance score: $NEW_SCORE%"
+          fi
+        else
+          echo "✗ Auto-remediation failed"
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Generate Security Report
+      shell: bash
+      run: |
+        echo "::group::Generating Security Report"
+        
+        REPORT_DIR="/tmp/security-reports"
+        mkdir -p "$REPORT_DIR"
+        
+        # Generate comprehensive report
+        cat > "$REPORT_DIR/security-summary.json" << EOF
+        {
+          "scan_timestamp": "$(date -Iseconds)",
+          "workflow_run": "${{ github.run_id }}",
+          "repository": "${{ github.repository }}",
+          "commit_sha": "${{ github.sha }}",
+          "hardening": {
+            "status": "$HARDENING_STATUS",
+            "profile": "$HARDENING_PROFILE",
+            "modules": "$HARDENING_MODULES",
+            "dry_run": $DRY_RUN
+          },
+          "compliance": {
+            "frameworks": "$COMPLIANCE_FRAMEWORKS",
+            "overall_score": $COMPLIANCE_SCORE,
+            "failed_controls": $FAILED_CONTROLS,
+            "auto_remediated": ${{ inputs.auto_remediate }}
+          },
+          "system": {
+            "os": "$(lsb_release -d 2>/dev/null | cut -f2 || echo 'Unknown')",
+            "kernel": "$(uname -r)",
+            "architecture": "$(uname -m)"
+          }
+        }
+        EOF
+        
+        echo "REPORT_PATH=$REPORT_DIR/security-summary.json" >> $GITHUB_ENV
+        
+        # Generate SARIF report for GitHub Security tab
+        if [ "$REPORT_FORMAT" = "sarif" ]; then
+          cat > "$REPORT_DIR/security-results.sarif" << EOF
+        {
+          "\$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+          "version": "2.1.0",
+          "runs": [
+            {
+              "tool": {
+                "driver": {
+                  "name": "Linux Server Hardening Platform",
+                  "version": "1.0.0",
+                  "informationUri": "https://github.com/lucchesi-sec/cybersec-projects"
+                }
+              },
+              "results": []
+            }
+          ]
+        }
+        EOF
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Upload Security Reports
+      if: inputs.upload_artifacts == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-compliance-reports
+        path: /tmp/security-reports/
+        retention-days: 30
+
+    - name: Upload SARIF Results
+      if: inputs.report_format == 'sarif'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: /tmp/security-reports/security-results.sarif
+        category: "Linux Server Hardening"
+
+    - name: Send Notifications
+      if: inputs.notification_webhook != ''
+      shell: bash
+      run: |
+        echo "::group::Sending Notifications"
+        
+        # Prepare notification payload
+        PAYLOAD=$(cat << EOF
+        {
+          "repository": "${{ github.repository }}",
+          "workflow": "${{ github.workflow }}",
+          "run_id": "${{ github.run_id }}",
+          "commit": "${{ github.sha }}",
+          "hardening_status": "$HARDENING_STATUS",
+          "compliance_score": $COMPLIANCE_SCORE,
+          "failed_controls": $FAILED_CONTROLS,
+          "timestamp": "$(date -Iseconds)"
+        }
+        EOF
+        )
+        
+        # Send webhook notification
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "$PAYLOAD" \
+          "${{ inputs.notification_webhook }}" \
+          --max-time 30 \
+          --retry 2 || echo "Webhook notification failed"
+        
+        echo "::endgroup::"
+
+    - name: Set Action Outputs
+      shell: bash
+      run: |
+        echo "compliance_score=$COMPLIANCE_SCORE" >> $GITHUB_OUTPUT
+        echo "hardening_status=$HARDENING_STATUS" >> $GITHUB_OUTPUT
+        echo "report_path=$REPORT_PATH" >> $GITHUB_OUTPUT
+        echo "failed_controls=$FAILED_CONTROLS" >> $GITHUB_OUTPUT
+
+    - name: Summary
+      shell: bash
+      run: |
+        echo "## 🔒 Linux Server Hardening Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Hardening Status | $HARDENING_STATUS |" >> $GITHUB_STEP_SUMMARY
+        echo "| Compliance Score | $COMPLIANCE_SCORE% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Failed Controls | $FAILED_CONTROLS |" >> $GITHUB_STEP_SUMMARY
+        echo "| Profile Used | $HARDENING_PROFILE |" >> $GITHUB_STEP_SUMMARY
+        echo "| Frameworks | $COMPLIANCE_FRAMEWORKS |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$COMPLIANCE_SCORE" -ge 90 ]; then
+          echo "✅ **Excellent security posture achieved!**" >> $GITHUB_STEP_SUMMARY
+        elif [ "$COMPLIANCE_SCORE" -ge 80 ]; then
+          echo "✅ **Good security baseline established**" >> $GITHUB_STEP_SUMMARY
+        elif [ "$COMPLIANCE_SCORE" -ge 70 ]; then
+          echo "⚠️ **Security improvements needed**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Significant security gaps identified**" >> $GITHUB_STEP_SUMMARY
+        fi
+
+branding:
+  icon: 'shield'
+  color: 'blue'

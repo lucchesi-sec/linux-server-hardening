@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: ip6tables
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') ip6tables $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/ip6tables.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/ip6tables.sh" "$@"
+else
+    # Default mock behavior
+    mock_ip6tables_default "$@"
+fi

@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: dnf
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') dnf $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/dnf.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/dnf.sh" "$@"
+else
+    # Default mock behavior
+    mock_dnf_default "$@"
+fi

@@ -1,0 +1,235 @@
+# Compliance Profiles Configuration
+# Defines compliance profiles for different organizational needs
+
+profiles:
+  # Corporate baseline profile
+  corporate_baseline:
+    description: "Standard corporate security baseline"
+    frameworks:
+      - cis_ubuntu_22_04
+      - nist_800_53
+    severity_threshold: "medium"
+    auto_remediate: false
+    notification_channels:
+      - email
+      - slack
+    schedule:
+      daily_checks: true
+      weekly_full_scan: true
+      monthly_report: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - auditd
+        - sysctl
+      optional:
+        - fail2ban
+        - clamav
+        - aide
+    
+  # Financial services profile  
+  financial_services:
+    description: "Enhanced security for financial services"
+    frameworks:
+      - pci_dss
+      - nist_800_53
+      - soc2
+    severity_threshold: "high"
+    auto_remediate: true
+    notification_channels:
+      - email
+      - siem
+      - pagerduty
+    schedule:
+      continuous_monitoring: true
+      daily_reports: true
+      real_time_alerts: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - auditd
+        - sysctl
+        - fail2ban
+        - aide
+        - clamav
+        - apparmor
+      optional:
+        - ossec
+        - tripwire
+        - rkhunter
+    compliance_requirements:
+      encryption_at_rest: true
+      encryption_in_transit: true
+      multi_factor_auth: true
+      privilege_escalation_monitoring: true
+      
+  # Healthcare profile
+  healthcare:
+    description: "HIPAA compliant healthcare security"
+    frameworks:
+      - hipaa
+      - nist_800_53
+      - iso_27001
+    severity_threshold: "high" 
+    auto_remediate: false
+    notification_channels:
+      - email
+      - secure_messaging
+    schedule:
+      daily_checks: true
+      weekly_full_scan: true
+      quarterly_assessment: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - auditd
+        - sysctl
+        - fail2ban
+        - aide
+        - clamav
+      optional:
+        - selinux
+        - ossec
+    compliance_requirements:
+      data_encryption: true
+      access_logging: true
+      user_activity_monitoring: true
+      breach_detection: true
+      
+  # Development environment
+  development:
+    description: "Security baseline for development systems"
+    frameworks:
+      - cis_ubuntu_22_04
+    severity_threshold: "low"
+    auto_remediate: true
+    notification_channels:
+      - email
+    schedule:
+      weekly_checks: true
+      monthly_report: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - sysctl
+      optional:
+        - fail2ban
+        - auditd
+    compliance_requirements:
+      basic_hardening: true
+      secure_defaults: true
+      
+  # High security profile
+  high_security:
+    description: "Maximum security hardening profile"
+    frameworks:
+      - cis_ubuntu_22_04
+      - nist_800_53
+      - iso_27001
+    severity_threshold: "critical"
+    auto_remediate: false
+    notification_channels:
+      - email
+      - siem
+      - sms
+      - pagerduty
+    schedule:
+      continuous_monitoring: true
+      real_time_alerts: true
+      hourly_checks: true
+      daily_reports: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - auditd
+        - sysctl
+        - fail2ban
+        - aide
+        - clamav
+        - apparmor
+        - selinux
+        - ossec
+        - tripwire
+        - rkhunter
+        - lynis
+      optional: []
+    compliance_requirements:
+      mandatory_access_control: true
+      file_integrity_monitoring: true
+      intrusion_detection: true
+      malware_protection: true
+      vulnerability_scanning: true
+      security_hardening: true
+      
+  # Cloud profile
+  cloud_native:
+    description: "Cloud-native security profile"
+    frameworks:
+      - cis_ubuntu_22_04
+      - nist_800_53
+    severity_threshold: "medium"
+    auto_remediate: true
+    notification_channels:
+      - webhook
+      - cloudwatch
+      - datadog
+    schedule:
+      continuous_monitoring: true
+      auto_scaling_checks: true
+    modules:
+      required:
+        - ssh
+        - ufw
+        - auditd
+        - sysctl
+        - docker_hardening
+        - k8s_node_hardening
+      optional:
+        - fail2ban
+        - container_scanning
+    compliance_requirements:
+      container_security: true
+      secrets_management: true
+      network_segmentation: true
+      logging_centralization: true
+
+# Profile inheritance
+inheritance:
+  high_security:
+    inherits_from: "corporate_baseline"
+    overrides:
+      severity_threshold: "critical"
+      auto_remediate: false
+      
+  financial_services:
+    inherits_from: "high_security"
+    additional_frameworks:
+      - pci_dss
+      - soc2
+      
+  healthcare:
+    inherits_from: "high_security" 
+    additional_frameworks:
+      - hipaa
+    
+# Custom profile templates
+templates:
+  basic:
+    frameworks: ["cis_ubuntu_22_04"]
+    modules: ["ssh", "ufw", "sysctl"]
+    severity_threshold: "medium"
+    
+  enhanced:
+    frameworks: ["cis_ubuntu_22_04", "nist_800_53"]
+    modules: ["ssh", "ufw", "sysctl", "auditd", "fail2ban"]
+    severity_threshold: "medium"
+    
+  maximum:
+    frameworks: ["cis_ubuntu_22_04", "nist_800_53", "iso_27001"]
+    modules: ["ssh", "ufw", "sysctl", "auditd", "fail2ban", "aide", "clamav", "apparmor"]
+    severity_threshold: "high"

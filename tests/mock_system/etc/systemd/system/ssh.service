@@ -1,0 +1,7 @@
+[Unit]
+Description=OpenBSD Secure Shell server
+[Service]
+Type=notify
+ExecStart=/usr/sbin/sshd -D
+[Install]
+WantedBy=multi-user.target

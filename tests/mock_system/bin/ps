@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: ps
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') ps $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/ps.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/ps.sh" "$@"
+else
+    # Default mock behavior
+    mock_ps_default "$@"
+fi

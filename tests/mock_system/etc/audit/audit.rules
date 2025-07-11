@@ -1,0 +1,4 @@
+# Mock audit rules
+-D
+-b 8192
+-e 2

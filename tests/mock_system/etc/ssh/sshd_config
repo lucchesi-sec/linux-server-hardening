@@ -1,0 +1,10 @@
+# Mock SSH configuration for testing
+Port 22
+Protocol 2
+PasswordAuthentication yes
+PermitRootLogin yes
+X11Forwarding yes
+LoginGraceTime 120
+MaxAuthTries 6
+ClientAliveInterval 0
+ClientAliveCountMax 3

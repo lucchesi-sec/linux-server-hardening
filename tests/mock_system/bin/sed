@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: sed
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') sed $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/sed.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/sed.sh" "$@"
+else
+    # Default mock behavior
+    mock_sed_default "$@"
+fi

@@ -1,0 +1,9 @@
+-w /etc/passwd -p wa -k user-modification
+-w /etc/group -p wa -k group-modification
+-w /etc/shadow -p wa -k shadow-modification
+-w /etc/gshadow -p wa -k gshadow-modification
+-w /var/log/sudo.log -p wa -k sudo-log
+-w /etc/ssh/sshd_config -p wa -k ssh-config
+-w /var/log/auth.log -p wa -k auth-log
+-a always,exit -F arch=b64 -S execve -F path=/bin/su -F key=privileged-activity
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/sudo -F key=privileged-activity

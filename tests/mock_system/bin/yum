@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: yum
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') yum $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/yum.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/yum.sh" "$@"
+else
+    # Default mock behavior
+    mock_yum_default "$@"
+fi

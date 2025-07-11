@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: awk
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') awk $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/awk.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/awk.sh" "$@"
+else
+    # Default mock behavior
+    mock_awk_default "$@"
+fi

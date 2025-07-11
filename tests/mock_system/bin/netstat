@@ -1,0 +1,13 @@
+#!/bin/bash
+# Mock command: netstat
+
+# Log command execution
+echo "$(date '+%Y-%m-%d %H:%M:%S') netstat $*" >> "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_commands.log"
+
+# Source mock command behavior if available
+if [[ -f "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/netstat.sh" ]]; then
+    source "/Users/enzolucchesi/Github/cybersec-projects/linux-server-hardening/tests/mock_system/tmp/mock_results/netstat.sh" "$@"
+else
+    # Default mock behavior
+    mock_netstat_default "$@"
+fi

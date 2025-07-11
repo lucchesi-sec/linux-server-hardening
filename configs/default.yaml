@@ -1,0 +1,121 @@
+# Default Linux Hardening Configuration
+# This configuration defines which modules to run and their settings
+
+# General settings
+dry_run: false
+verbose: false
+backup_configs: true
+log_level: info
+output_format: colored
+
+# Enabled hardening modules
+enabled_modules:
+  - ssh
+  - ufw
+  - sysctl
+  - fail2ban
+  - auditd
+  - packages
+  - pam
+  - banner
+
+# Module-specific configuration
+modules:
+  ssh:
+    port: 22
+    permit_root_login: false
+    password_authentication: false
+    protocol: 2
+    x11_forwarding: false
+    login_grace_time: 60
+    max_auth_tries: 3
+    client_alive_interval: 300
+    client_alive_count_max: 2
+    
+  ufw:
+    default_incoming: deny
+    default_outgoing: allow
+    allowed_ports:
+      - 22/tcp
+      - 80/tcp
+      - 443/tcp
+    enable_force: true
+      
+  fail2ban:
+    ban_time: 3600
+    find_time: 600
+    max_retry: 5
+    enabled_jails:
+      - sshd
+      - apache-auth
+    jail_local_path: /etc/fail2ban/jail.local
+    jail_conf_path: /etc/fail2ban/jail.conf
+      
+  sysctl:
+    config_file: /etc/sysctl.d/99-hardening.conf
+    # Network security settings
+    ip_forward: 0
+    send_redirects: 0
+    accept_redirects: 0
+    accept_source_route: 0
+    log_martians: 1
+    rp_filter: 1
+    icmp_echo_ignore_broadcasts: 1
+    tcp_syncookies: 1
+    # Memory/Process security
+    randomize_va_space: 2
+    dmesg_restrict: 1
+    # Filesystem protection
+    protected_fifos: 1
+    protected_hardlinks: 1
+    protected_regular: 1
+    protected_symlinks: 1
+    
+  auditd:
+    rules_file: /etc/audit/rules.d/99-hardening-rules.rules
+    monitor_identity_files: true
+    monitor_login_files: true
+    monitor_ssh_config: true
+    monitor_privileged_commands: true
+    monitor_modules: true
+    monitor_mounts: true
+    monitor_file_access: true
+    make_immutable: true
+    
+  packages:
+    # Essential security packages to install
+    required_packages:
+      - ufw
+      - fail2ban
+      - auditd
+      - unattended-upgrades
+      - libpam-pwquality
+    # Unattended upgrades configuration
+    enable_auto_reboot: true
+    auto_reboot_conf: /etc/apt/apt.conf.d/99-hardening-auto-reboot.conf
+    
+  pam:
+    pwquality_conf: /etc/security/pwquality.conf
+    # Password quality requirements
+    min_length: 12
+    min_class: 3
+    max_repeat: 2
+    max_class_repeat: 4
+    require_lower: 1
+    require_upper: 1
+    require_digit: 1
+    require_other: 1
+    
+  banner:
+    issue_net_path: /etc/issue.net
+    sshd_banner_enable: true
+    custom_banner: |
+      ************************************************************************
+      *                                                                      *
+      *  WARNING: Unauthorized access to this system is prohibited and      *
+      *  will be prosecuted to the full extent of the law.                  *
+      *                                                                      *
+      *  All connections are monitored and recorded.                        *
+      *  Disconnect immediately if you are not an authorized user.          *
+      *                                                                      *
+      ************************************************************************

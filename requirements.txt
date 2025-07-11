@@ -1,0 +1,114 @@
+# Linux Server Hardening Platform - Python Dependencies
+# API Server and Advanced Components
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Authentication & Security  
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
+# Data Validation & Serialization
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# Database (Optional - for advanced features)
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.7  # PostgreSQL
+aiosqlite>=0.19.0       # SQLite async
+
+# Configuration Management
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+configargparse>=1.7
+
+# HTTP Client & API Integration
+httpx>=0.25.0
+aiohttp>=3.8.0
+requests>=2.31.0
+
+# Async Support
+asyncio-mqtt>=0.16.0
+aiofiles>=23.2.1
+
+# Monitoring & Observability
+prometheus-client>=0.17.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+
+# Logging & Error Tracking
+structlog>=23.1.0
+sentry-sdk[fastapi]>=1.32.0
+
+# Task Queue (for background jobs)
+celery>=5.3.0
+redis>=5.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+httpx>=0.25.0  # For testing FastAPI
+
+# Development Tools
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Documentation
+mkdocs>=1.5.0
+mkdocs-material>=9.2.0
+
+# Deployment
+gunicorn>=21.2.0
+docker-compose>=1.29.0
+
+# Security Scanning
+bandit>=1.7.5
+safety>=2.3.5
+
+# CLI Tools
+click>=8.1.7
+rich>=13.5.0
+typer>=0.9.0
+
+# Data Processing
+pandas>=2.1.0  # For analytics
+numpy>=1.24.0   # For metrics calculation
+
+# Encryption & Cryptography
+cryptography>=41.0.0
+bcrypt>=4.0.0
+
+# Webhooks & Integration
+webhooks>=0.3.0
+github3.py>=4.0.1
+python-gitlab>=3.15.0
+
+# Cloud Provider SDKs (Optional)
+boto3>=1.28.0          # AWS
+azure-identity>=1.14.0 # Azure
+google-cloud-core>=2.3.0 # GCP
+
+# Message Queue
+kombu>=5.3.0
+vine>=5.0.0
+
+# Network & SSH
+paramiko>=3.3.0
+netaddr>=0.9.0
+
+# File Processing
+watchdog>=3.0.0
+pathlib2>=2.3.7
+
+# Utilities
+python-dateutil>=2.8.2
+humanize>=4.7.0
+psutil>=5.9.5
+distro>=1.8.0
