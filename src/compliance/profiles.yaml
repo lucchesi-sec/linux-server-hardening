@@ -2,9 +2,9 @@
 # Defines compliance profiles for different organizational needs
 
 profiles:
-  # Corporate baseline profile
-  corporate_baseline:
-    description: "Standard corporate security baseline"
+  # Standard baseline profile
+standard_baseline:
+description: "Standard security baseline"
     frameworks:
       - cis_ubuntu_22_04
       - nist_800_53
@@ -201,7 +201,7 @@ profiles:
 # Profile inheritance
 inheritance:
   high_security:
-    inherits_from: "corporate_baseline"
+    inherits_from: "standard_baseline"
     overrides:
       severity_threshold: "critical"
       auto_remediate: false

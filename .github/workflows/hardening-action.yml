@@ -7,9 +7,9 @@ author: 'Linux Server Hardening Platform'
 
 inputs:
   profile:
-    description: 'Hardening profile to apply (corporate_baseline, financial_services, healthcare, high_security)'
+    description: 'Hardening profile to apply (standard_baseline, financial_services, healthcare, high_security)'
     required: false
-    default: 'corporate_baseline'
+    default: 'standard_baseline'
   
   modules:
     description: 'Specific modules to execute (comma-separated)'
@@ -51,7 +51,7 @@ inputs:
     required: false
   
   api_token:
-    description: 'API token for fleet management integration'
+    description: 'API token for multi-server management integration'
     required: false
 
 outputs:

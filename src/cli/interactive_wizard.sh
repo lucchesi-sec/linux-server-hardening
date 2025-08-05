@@ -63,10 +63,10 @@ declare -A MODULE_INFO=(
 )
 
 declare -A COMPLIANCE_PROFILES=(
-    [corporate_name]="Corporate Baseline"
-    [corporate_desc]="Standard enterprise security configuration"
-    [corporate_frameworks]="CIS, NIST 800-53"
-    [corporate_modules]="ssh ufw sysctl auditd fail2ban"
+    [standard_name]="Standard Baseline"
+[standard_desc]="Standard security configuration"
+    [standard_frameworks]="CIS, NIST 800-53"
+[standard_modules]="ssh ufw sysctl auditd fail2ban"
     
     [financial_name]="Financial Services"
     [financial_desc]="Enhanced security for financial institutions"
@@ -164,7 +164,7 @@ Security Modules:
   • File Integrity    - Advanced intrusion detection
 
 Compliance Profiles:
-  • Corporate Baseline - Standard enterprise security
+  • Standard Baseline - Standard security
   • Financial Services - PCI DSS and SOC2 compliance
   • Healthcare HIPAA   - Healthcare industry compliance
   • Development       - Balanced security for dev systems
@@ -305,7 +305,7 @@ run_profile_selection() {
     info "Select a security profile that matches your environment:"
     echo
     
-    local profiles=("corporate" "financial" "healthcare" "development" "high_security" "custom")
+    local profiles=("standard" "financial" "healthcare" "development" "high_security" "custom")
     local choice=0
     
     while true; do
@@ -390,8 +390,8 @@ show_profile_help() {
     cat << EOF
 Compliance Profiles Guide:
 
-Corporate Baseline:
-  • Standard enterprise security configuration
+Standard Baseline:
+  • Standard security configuration
   • Balances security with operational needs
   • Suitable for most business environments
   • Frameworks: CIS, NIST 800-53

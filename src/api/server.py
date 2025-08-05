@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Linux Server Hardening Platform - REST API Server
-Enterprise-grade API for fleet management and automation
+API for multi-server management and automation
 """
 
 import os
@@ -53,8 +53,8 @@ class ComplianceScanRequest(BaseModel):
     profile: str = Field(default="default", description="Scan profile")
     output_format: str = Field(default="json", description="Report format")
 
-class FleetDeployRequest(BaseModel):
-    """Request model for fleet deployment"""
+class MultiServerDeployRequest(BaseModel):
+    """Request model for multi-server deployment"""
     targets: List[str] = Field(description="Target nodes")
     modules: List[str] = Field(description="Modules to deploy")
     config: Optional[Dict[str, Any]] = Field(default=None)
@@ -115,7 +115,7 @@ async def lifespan(app: FastAPI):
 # FastAPI application
 app = FastAPI(
     title="Linux Server Hardening Platform API",
-    description="Enterprise security hardening and compliance automation",
+    description="Security hardening and compliance automation",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -323,12 +323,12 @@ async def list_compliance_reports(
         logger.error(f"Failed to list reports: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list reports: {str(e)}")
 
-@app.post("/api/v1/fleet/register")
+@app.post("/api/v1/servers/register")
 async def register_node(
     request: NodeRegistration,
     user: dict = Depends(get_current_user)
 ):
-    """Register a new node in the fleet"""
+    """Register a new server node"""
     node_id = f"{request.hostname}_{request.ip_address}"
     
     app_state.registered_nodes[node_id] = {
@@ -348,12 +348,12 @@ async def register_node(
         "message": f"Node {request.hostname} registered successfully"
     }
 
-@app.get("/api/v1/fleet/nodes")
-async def list_fleet_nodes(
+@app.get("/api/v1/servers/nodes")
+async def list_server_nodes(
     status: Optional[str] = None,
     user: dict = Depends(get_current_user)
 ):
-    """List fleet nodes"""
+    """List server nodes"""
     nodes = list(app_state.registered_nodes.values())
     
     # Filter by status if specified
@@ -365,13 +365,13 @@ async def list_fleet_nodes(
         "total": len(nodes)
     }
 
-@app.post("/api/v1/fleet/deploy")
-async def deploy_to_fleet(
-    request: FleetDeployRequest,
+@app.post("/api/v1/servers/deploy")
+async def deploy_to_servers(
+    request: MultiServerDeployRequest,
     background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user)
 ):
-    """Deploy hardening to fleet"""
+    """Deploy hardening to multiple servers"""
     task_id = generate_task_id()
     
     # Validate targets
@@ -396,12 +396,12 @@ async def deploy_to_fleet(
         "status": "pending",
         "targets": request.targets,
         "modules": request.modules,
-        "message": "Fleet deployment initiated"
+        "message": "Multi-server deployment initiated"
     }
 
-@app.get("/api/v1/fleet/metrics")
-async def get_fleet_metrics(user: dict = Depends(get_current_user)):
-    """Get fleet-wide metrics"""
+@app.get("/api/v1/servers/metrics")
+async def get_server_metrics(user: dict = Depends(get_current_user)):
+    """Get server-wide metrics"""
     nodes = list(app_state.registered_nodes.values())
     
     return {

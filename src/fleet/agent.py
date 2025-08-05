@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Fleet Management Agent
-Lightweight agent for fleet coordination and remote execution
+Multi-Server Management Agent
+Lightweight agent for server coordination and remote execution
 """
 
 import os
@@ -83,8 +83,8 @@ class TaskExecution:
     stderr: Optional[str] = None
     error: Optional[str] = None
 
-class FleetAgent:
-    """Fleet management agent"""
+class ServerAgent:
+    """Multi-server management agent"""
     
     def __init__(self, config_path: str = CONFIG_FILE):
         self.config_path = config_path
@@ -224,7 +224,7 @@ class FleetAgent:
         
         response = await self._make_request(
             "POST",
-            "/api/v1/fleet/register",
+            "/api/v1/servers/register",
             json=registration_data
         )
         
@@ -250,7 +250,7 @@ class FleetAgent:
         
         response = await self._make_request(
             "POST",
-            "/api/v1/fleet/heartbeat",
+            "/api/v1/servers/heartbeat",
             json=heartbeat_data
         )
         
@@ -260,7 +260,7 @@ class FleetAgent:
         """Check for pending tasks"""
         response = await self._make_request(
             "GET",
-            f"/api/v1/fleet/tasks?node_id={self.config.node_id}&status=pending"
+            f"/api/v1/servers/tasks?node_id={self.config.node_id}&status=pending"
         )
         
         if response:
@@ -319,7 +319,7 @@ class FleetAgent:
         
         response = await self._make_request(
             "POST",
-            f"/api/v1/fleet/tasks/{execution.task_id}/result",
+            f"/api/v1/servers/tasks/{execution.task_id}/result",
             json=result_data
         )
         
@@ -380,7 +380,7 @@ class FleetAgent:
     
     async def run(self):
         """Main agent loop"""
-        logger.info(f"Starting Fleet Agent v{AGENT_VERSION}")
+        logger.info(f"Starting Server Agent v{AGENT_VERSION}")
         
         # Initialize HTTP client
         self.client = httpx.AsyncClient()
@@ -443,7 +443,7 @@ async def main():
     """Main entry point"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Fleet Management Agent")
+    parser = argparse.ArgumentParser(description="Multi-Server Management Agent")
     parser.add_argument(
         "--config",
         default=CONFIG_FILE,
@@ -463,7 +463,7 @@ async def main():
     args = parser.parse_args()
     
     # Create agent
-    agent = FleetAgent(args.config)
+    agent = ServerAgent(args.config)
     
     if args.test:
         # Test configuration

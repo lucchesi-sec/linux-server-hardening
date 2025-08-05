@@ -81,9 +81,9 @@ elasticsearch/data/
 logstash/data/
 kibana/data/
 
-# Fleet management artifacts
-fleet/data/
-fleet/logs/
+# Multi-server management artifacts
+servers/data/
+servers/logs/
 
 # Compliance report outputs (may contain sensitive data)
 compliance/reports/

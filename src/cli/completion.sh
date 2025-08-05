@@ -18,13 +18,13 @@ _harden_completions() {
     local modules="ssh ufw fail2ban sysctl auditd apparmor aide clamav rkhunter lynis packages banner"
     
     # Profile names
-    local profiles="corporate_baseline financial_services healthcare development high_security custom"
+    local profiles="standard_baseline financial_services healthcare development high_security custom"
     
     # Compliance frameworks
     local frameworks="cis_ubuntu_22_04 nist_800_53 pci_dss iso_27001 soc2 hipaa"
     
     # Configuration files
-    local configs="default.yaml corporate.yaml financial.yaml healthcare.yaml development.yaml high_security.yaml"
+    local configs="default.yaml standard.yaml financial.yaml healthcare.yaml development.yaml high_security.yaml"
     
     # Themes
     local themes="default dark minimal"
@@ -84,8 +84,8 @@ _harden_completions() {
         --compliance)
             _complete_compliance_subcommands
             ;;
-        --fleet)
-            _complete_fleet_subcommands
+        --servers)
+            _complete_server_subcommands
             ;;
         --api)
             _complete_api_subcommands
@@ -151,9 +151,9 @@ _complete_compliance_subcommands() {
     fi
 }
 
-# Complete fleet subcommands
-_complete_fleet_subcommands() {
-    local fleet_cmds="list register deploy status logs metrics nodes"
+# Complete server subcommands
+_complete_server_subcommands() {
+    local server_cmds="list register deploy status logs metrics nodes"
     
     if [[ ${COMP_CWORD} -eq 2 ]]; then
         COMPREPLY=($(compgen -W "${fleet_cmds}" -- ${cur}))
@@ -242,7 +242,7 @@ _harden_completions_with_descriptions() {
         ["--modules"]="Manage hardening modules"
         ["--profiles"]="Manage compliance profiles"
         ["--compliance"]="Run compliance operations"
-        ["--fleet"]="Fleet management operations"
+        ["--servers"]="Multi-server management operations"
         ["--api"]="API server operations"
         ["--theme"]="Set CLI theme"
         ["ssh"]="SSH daemon hardening"
@@ -252,7 +252,7 @@ _harden_completions_with_descriptions() {
         ["auditd"]="Audit logging configuration"
         ["apparmor"]="AppArmor mandatory access control"
         ["aide"]="AIDE file integrity monitoring"
-        ["corporate_baseline"]="Standard enterprise security"
+        ["standard_baseline"]="Standard security baseline"
         ["financial_services"]="PCI DSS and SOC2 compliance"
         ["healthcare"]="HIPAA compliance configuration"
         ["development"]="Development environment security"
@@ -269,7 +269,7 @@ _harden_completions_with_descriptions() {
             options="ssh ufw fail2ban sysctl auditd apparmor aide clamav rkhunter lynis"
             ;;
         --profile|-p)
-            options="corporate_baseline financial_services healthcare development high_security custom"
+            options="standard_baseline financial_services healthcare development high_security custom"
             ;;
     esac
     
@@ -328,7 +328,7 @@ _harden_complete() {
     
     local main_opts="--apply --interactive --config --verbose --dry-run --validate --detect --help --dashboard --wizard --modules --profiles --compliance --fleet --api --theme"
     local modules="ssh ufw fail2ban sysctl auditd apparmor aide clamav rkhunter lynis packages banner"
-    local profiles="corporate_baseline financial_services healthcare development high_security custom"
+    local profiles="standard_baseline financial_services healthcare development high_security custom"
     local frameworks="cis_ubuntu_22_04 nist_800_53 pci_dss iso_27001 soc2 hipaa"
     
     case "${prev}" in
@@ -503,7 +503,7 @@ COMPLETION CONTEXTS:
 
 EXAMPLES:
   harden.sh --apply --modules ss<TAB>     → ssh
-  harden.sh --profile corpor<TAB>         → corporate_baseline
+  harden.sh --profile stand<TAB>         → standard_baseline
   harden.sh --compliance scan ci<TAB>     → cis_ubuntu_22_04
   harden.sh --config configs/cus<TAB>     → configs/custom.yaml
 
